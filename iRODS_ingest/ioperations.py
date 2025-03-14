@@ -30,9 +30,9 @@ def add_metadata(session, row):
         # Skip upload status columns
         if col[0] == '_':
             continue
-        # NPEC ---------------------------------------
+        # PBR ---------------------------------------
         if 'NPEC ' in col:
-            tagname = col.replace('NPEC ', 'NPEC_').replace('npec ', 'NPEC_')
+            tagname = col.replace('PBR ', 'PBR_').replace('pbr ', 'PBR_')
         else:
             tagname = f"NPEC_{col}"
         # ---------------------------------------------
@@ -40,20 +40,13 @@ def add_metadata(session, row):
         if not obj_meta.__contains__(tagname):
             if str(row[col]) == 'nan':
                 obj_meta.add(tagname.rstrip(), '-')
-            # NPEC ---------------------------------------
-            elif row[col] == 'Traitseeker_UAVS':
-                obj_meta.add(tagname.rstrip(), 'Traitseeker')
-                obj_meta.add(tagname.rstrip(), 'UAV')
-            elif row[col] == 'UAVS':
-                obj_meta.add(tagname.rstrip(), 'UAV')
-            elif col == 'Crop':
-                for val in row[col].split(','):
-                    obj_meta.add(tagname.rstrip(), val.strip().lower())
-            elif col == 'NPEC_potcount' or col == 'potcount':
-                obj_meta.add(tagname.rstrip(), str(int(row[col])).rstrip())
-            # ---------------------------------------------
             else:
-                obj_meta.add(tagname.rstrip(), str(row[col]).rstrip())
+                #all fields that are separated by commas will be split up and added independently
+                if "," in row[col]:
+                    for val in str(row[col]).rstrip().split(","):
+                        obj_meta.add(tagname.rstrip(), val)
+                else:
+                    obj_meta.add(tagname.rstrip(), str(row[col]).rstrip())
     logging.info(f"Metadata added to {i_path}")
     return True
 
