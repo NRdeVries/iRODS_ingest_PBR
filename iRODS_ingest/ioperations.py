@@ -31,17 +31,17 @@ def add_metadata(session, row):
         if col[0] == '_':
             continue
         # PBR ---------------------------------------
-        if 'NPEC ' in col:
+        if 'PBR ' in col:
             tagname = col.replace('PBR ', 'PBR_').replace('pbr ', 'PBR_')
         else:
-            tagname = f"NPEC_{col}"
+            tagname = f"PBR_{col}"
         # ---------------------------------------------
         # print(f"{tagname}: {row[col]}")
         if not obj_meta.__contains__(tagname):
             if str(row[col]) == 'nan':
                 obj_meta.add(tagname.rstrip(), '-')
             else:
-                #all fields that are separated by commas will be split up and added independently
+                # All fields separated by commas will be split up and added independently
                 if "," in row[col]:
                     for val in str(row[col]).rstrip().split(","):
                         obj_meta.add(tagname.rstrip(), val)
