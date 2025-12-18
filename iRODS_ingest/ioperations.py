@@ -7,7 +7,7 @@ from pathlib import Path
 from ibridges import Session
 from ibridges.data_operations import create_collection, upload
 from ibridges.meta import MetaData
-from ibridges.util import get_dataobject, obj_replicas
+from ibridges.util import get_dataobject, obj_replicas, get_collection
 from ibridges.rules import execute_rule
 from ibridges.path import IrodsPath
 
@@ -42,7 +42,48 @@ def add_metadata(session, row):
                 obj_meta.add(tagname.rstrip(), '-')
             else:
                 # All fields separated by commas will be split up and added independently
-                if "," in row[col]:
+                if "," in row[col]: # should this be str(row[col])?
+                    for val in str(row[col]).rstrip().split(","):
+                        obj_meta.add(tagname.rstrip(), val)
+                else:
+                    obj_meta.add(tagname.rstrip(), str(row[col]).rstrip())
+    logging.info(f"Metadata added to {i_path}")
+    return True
+
+
+def add_metadata_folder(session, row):
+    """Add metdata to an irods dataobject
+    Args:
+        session (ibridges.Session): irods session
+        row (dict): metadata to add
+    Returns:
+        bool: True if successful
+    """
+    print(row)
+    i_path = IrodsPath(session, row['_iPath'])
+    if not i_path.collection_exists():
+        logging.error(f"Adding metadata, collection {i_path} not found")
+        return False
+    do = get_collection(session, i_path)
+    obj_meta = MetaData(do)
+    for col in row.keys():
+        print(row[col])
+        # Skip upload status columns
+        if col[0] == '_':
+            continue
+        # PBR ---------------------------------------
+        if 'PBR ' in col:
+            tagname = col.replace('PBR ', 'PBR_').replace('pbr ', 'PBR_')
+        else:
+            tagname = f"PBR_{col}"
+        # ---------------------------------------------
+        # print(f"{tagname}: {row[col]}")
+        if not obj_meta.__contains__(tagname):
+            if str(row[col]) == 'nan':
+                obj_meta.add(tagname.rstrip(), '-')
+            else:
+                # All fields separated by commas will be split up and added independently
+                if "," in str(row[col]):
                     for val in str(row[col]).rstrip().split(","):
                         obj_meta.add(tagname.rstrip(), val)
                 else:
