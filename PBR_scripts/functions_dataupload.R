@@ -268,7 +268,8 @@ add_investigation_from_excel <- function(crate, excelpath) {
   creators_list <- lapply(people, function(person) list(`@id` = person$`@id`))
 
   metadata1 = list(
-    "@id" = "./",
+    #"@id" = "./",
+    "@id" = file.path("irods://ArchvPROD/PSG/PBR/",df[[row,"PROJID"]])
     "@type" = "schema.org/Dataset",
     "additionalType" = "Investigation",
     "identifier" = df$PROJID,
@@ -295,6 +296,7 @@ add_studies_from_excel_make_cratelist <- function(crate, excelpath) {
 
   for (row in seq(nrow(df))){
     id = df[[row,"EXPID"]]
+    id_for_hasPart = file.path("irods://ArchvPROD/PSG/PBR/", df[[row,"PROJID"]], df[[row,"EXPID"]])
     # process people key, which can be a single person or a comma-separated list of persons
     peoplenames_string = df[[row,"people"]]
     emails_string = df[[row,"email"]]
@@ -306,22 +308,23 @@ add_studies_from_excel_make_cratelist <- function(crate, excelpath) {
     creators_list <- lapply(people, function(person) list(`@id` = person$`@id`))
 
     metadata1 = list(
-      "@id" = df[[row,"EXPID"]], # or: file.path("ArchvPROD/PSG/PBR/",df[[row,"PROJID"]],df[[row,"EXPID"]])
+      "@id" = id_for_hasPart,
+      #"@id" = df[[row,"EXPID"]], 
       "@type" = "schema.org/Dataset",
       "additionalType" = "Study",
       "identifier" = df[[row,"EXPID"]],
       "name" = df[[row,"title"]],
-       creator = creators_list
+      creator = creators_list
       )
 
     metadata2 = as.list(df[row,])
     # initially filled cratelist per row/Study (not named list) but if I want to add Assay to Study perhaps convenient to use Study name/EXPID?
     # changed all cratelist[[row]] to cratelist[[id]]
     cratelist[[id]] <- crate
-    #cratelist[[id]][["@graph"]] <- append(cratelist[[id]][["@graph"]], list(c(metadata1,metadata2)))
     cratelist[[id]][["@graph"]] <- append(cratelist[[id]][["@graph"]], list(c(metadata1,metadata2)))
     cratelist[[id]][["@graph"]] <- append(cratelist[[id]][["@graph"]], people)
-    cratelist[[id]][["@graph"]][[2]][["hasPart"]] <- append(cratelist[[id]][["@graph"]][[2]][["hasPart"]], list(list("@id" = id)))
+    # cratelist[[id]][["@graph"]][[2]][["hasPart"]] <- append(cratelist[[id]][["@graph"]][[2]][["hasPart"]], list(list("@id" = id)))
+    cratelist[[id]][["@graph"]][[2]][["hasPart"]] <- append(cratelist[[id]][["@graph"]][[2]][["hasPart"]], list(list("@id" = id_for_hasPart)))
     #jsonlite::write_json(cratelist[[id]], file.path("upload", df[[row,"EXPID"]], "ro-crate-metadata.json"), auto_unbox = TRUE, pretty = TRUE)
   }
   cratelist
@@ -337,9 +340,11 @@ add_assays_from_excel_perstudycrate <- function(crate, excelpath, this_EXPID) {
   df <- filter(assaydf, EXPID==this_EXPID)
   for (row in seq(nrow(df))){
     id = df[[row,"tarname"]]
+    id_for_hasPart = file.path("irods://ArchvPROD/PSG/PBR/", df[[row,"PROJID"]], df[[row,"EXPID"]], df[[row,"tarname"]])
 
     metadata1 = list(
-      "@id" = df[[row,"tarname"]],
+      #"@id" = df[[row,"tarname"]],
+      "@id" = id_for_hasPart,
       "@type" = "schema.org/Dataset",
       "additionalType" = "Assay",
       "identifier" = df[[row,"tarname"]],
@@ -353,7 +358,8 @@ add_assays_from_excel_perstudycrate <- function(crate, excelpath, this_EXPID) {
     #study_graph_item <- which(sapply(seq_along(crate[["@graph"]]), function(x) crate[["@graph"]][[x]]$"@id"==df[[row,"EXPID"]]))
     #study_graph_item <- which(sapply(crate[["@graph"]], function(x) x$"@id"==df[[row,"EXPID"]]))
     study_graph_item <- which(sapply(crate[["@graph"]], function(x) x$"@id"==this_EXPID))
-    crate[["@graph"]][[study_graph_item]][["hasPart"]] <- append(crate[["@graph"]][[study_graph_item]][["hasPart"]], list(list("@id" = id)))
+    #crate[["@graph"]][[study_graph_item]][["hasPart"]] <- append(crate[["@graph"]][[study_graph_item]][["hasPart"]], list(list("@id" = id)))
+    crate[["@graph"]][[study_graph_item]][["hasPart"]] <- append(crate[["@graph"]][[study_graph_item]][["hasPart"]], list(list("@id" = id_for_hasPart)))
     #crate[["@graph"]][[6]][["hasPart"]] <- append(crate[["@graph"]][[6]][["hasPart"]], list(list("@id" = id)))
   }
   crate

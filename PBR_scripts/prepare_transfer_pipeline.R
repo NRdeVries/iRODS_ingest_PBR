@@ -19,7 +19,7 @@ excel="newmetadata.PBR.20250915_projectX.xlsx"
 newProject=TRUE # create metadata table for currect Project? (TRUE for new project, FALSE if already added before)
 newStudies=c("E000006","E000007") # for which Studies' metadata should be added? (which of the Studies in the Excel file are new?)
 
-iRODS_ingest_repo_path = "~/iRODS_ingest_PBR"
+iRODS_ingest_repo_path = "~/iRODS_ingest_PBR" # path to the Github iRODS_ingest_PBR repository
 queue = "terri.q" # on which queue should the tar job be run (should match destination scratchpad)
 
 #############################################################################################################################################
